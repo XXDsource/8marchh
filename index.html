@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>8 Березня</title>
+
+<style>
+
+body{
+background:black;
+margin:0;
+overflow:hidden;
+font-family:sans-serif;
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+canvas{
+position:absolute;
+}
+
+#text{
+position:absolute;
+font-size:50px;
+opacity:0;
+color:red;
+transition:2s;
+}
+
+.show{
+opacity:1;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<canvas id="canvas"></canvas>
+<div id="text">З 8 березням 🌸</div>
+
+<script>
+
+const canvas = document.getElementById("canvas")
+const ctx = canvas.getContext("2d")
+
+canvas.width = window.innerWidth
+canvas.height = window.innerHeight
+
+let hearts = []
+let centerX = canvas.width/2
+let centerY = canvas.height/2
+
+for(let i=0;i<120;i++){
+
+hearts.push({
+x:Math.random()*canvas.width,
+y:Math.random()*canvas.height,
+size:20
+})
+
+}
+
+let progress = 0
+
+function drawHeart(x,y,size,emoji){
+
+ctx.font=size+"px serif"
+ctx.fillText(emoji,x,y)
+
+}
+
+function animate(){
+
+ctx.clearRect(0,0,canvas.width,canvas.height)
+
+progress+=0.01
+
+for(let i=0;i<hearts.length;i++){
+
+let angle = i*0.2
+let targetX = centerX + 200*Math.sin(angle)*Math.sin(angle)*Math.sin(angle)
+let targetY = centerY - (130*Math.cos(angle)-50*Math.cos(2*angle)-20*Math.cos(3*angle)-10*Math.cos(4*angle))
+
+hearts[i].x += (targetX-hearts[i].x)*progress
+hearts[i].y += (targetY-hearts[i].y)*progress
+
+drawHeart(hearts[i].x,hearts[i].y,20,"❤️")
+
+}
+
+if(progress<1){
+
+requestAnimationFrame(animate)
+
+}else{
+
+setInterval(()=>{
+
+ctx.clearRect(0,0,canvas.width,canvas.height)
+
+let emojis=["❤️","💖","💗","💓","💞"]
+
+for(let i=0;i<hearts.length;i++){
+
+let angle = i*0.2
+
+let x = centerX + 200*Math.sin(angle)*Math.sin(angle)*Math.sin(angle)
+let y = centerY - (130*Math.cos(angle)-50*Math.cos(2*angle)-20*Math.cos(3*angle)-10*Math.cos(4*angle))
+
+drawHeart(x,y,22,emojis[Math.floor(Math.random()*emojis.length)])
+
+}
+
+},300)
+
+document.getElementById("text").classList.add("show")
+
+}
+
+}
+
+animate()
+
+</script>
+
+</body>
+</html>
