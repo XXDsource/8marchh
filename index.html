@@ -30,10 +30,10 @@
 
         #message {
             position: absolute;
-            top: 220px; /* Відступ під серцем */
+            top: 220px; /* Місце під серцем */
             left: 5%;
             right: 5%;
-            font-size: 22px; /* Збільшений шрифт */
+            font-size: 22px; 
             line-height: 1.5;
             color: white;
             white-space: pre-line;
@@ -41,7 +41,7 @@
 
         @media (min-width: 768px) {
             #message {
-                font-size: 26px; /* Ще більший шрифт для ПК */
+                font-size: 26px;
                 width: 700px;
                 left: 60px;
             }
@@ -69,7 +69,7 @@ let heartSize = 15;
 let isFinished = false; 
 
 const heartEmojis = ["❤️", "💖", "💝", "💕", "💗", "💓"];
-let stage = 0; 
+let stage = 0; // 0: хаос, 1: центр, 2: кут
 
 for (let i = 0; i < heartCount; i++) {
     hearts.push({
@@ -95,4 +95,85 @@ function animate() {
         if (stage === 0) {
             h.x += h.vx;
             h.y += h.vy;
-            if (h.x < 0 || h.x > canvas.width) h.vx *=
+            if (h.x < 0 || h.x > canvas.width) h.vx *= -1;
+            if (h.y < 0 || h.y > canvas.height) h.vy *= -1;
+        } else {
+            const target = getHeartPoint(h.targetAngle, heartSize);
+            const tx = centerX + target.x;
+            const ty = centerY + target.y;
+            
+            h.x += (tx - h.x) * 0.08;
+            h.y += (ty - h.y) * 0.08;
+
+            // Переливання працює весь час, поки текст не закінчився
+            if (!isFinished) {
+                if (Math.random() > 0.92) {
+                    h.emoji = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+                }
+            } else {
+                h.emoji = "❤️"; // Зупиняємося на червоному в кінці
+            }
+        }
+        
+        ctx.font = `${heartSize + 4}px serif`;
+        ctx.fillText(h.emoji, h.x, h.y);
+    });
+
+    requestAnimationFrame(animate);
+}
+
+animate();
+
+// --- КЕРУВАННЯ ПОДІЯМИ ---
+
+// 1. Початок збору серця
+setTimeout(() => {
+    stage = 1;
+    document.getElementById("centerText").style.opacity = 1;
+}, 1000);
+
+// 2. Вимикаємо напис у центрі
+setTimeout(() => {
+    document.getElementById("centerText").style.opacity = 0;
+}, 2800);
+
+// 3. Зменшуємо та переміщуємо серце
+setTimeout(() => {
+    stage = 2;
+    centerX = 110; 
+    centerY = 110; 
+    heartSize = 9; 
+}, 3300);
+
+// 4. Друк привітання
+setTimeout(typeText, 4300);
+
+const textContent = `Сьогодні восьме березня! 
+Це чудовий весняний день, і я бажаю тобі, щоб у твоєму житті все було прекрасно. 
+
+Нехай лагідне сонце освітлює твій шлях не тільки сьогодні, а й кожного наступного дня. Будь щаслива, усміхнена і нехай весь твій шлях життя буде світлим, гарним і чудовим як і ти, сонце, Вітаю!✨`;
+
+let pos = 0;
+function typeText() {
+    if (pos < textContent.length) {
+        document.getElementById("message").textContent += textContent[pos];
+        pos++;
+        setTimeout(typeText, 40);
+    } else {
+        isFinished = true; // Тепер серце стане повністю червоним
+    }
+}
+
+// Підтримка розміру вікна
+window.onresize = () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    if (stage === 1) {
+        centerX = canvas.width / 2;
+        centerY = canvas.height / 2;
+    }
+};
+</script>
+
+</body>
+</html>
