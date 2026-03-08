@@ -12,26 +12,30 @@ margin:0;
 overflow:hidden;
 font-family:sans-serif;
 color:white;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
 }
 
 canvas{
 position:absolute;
 }
 
-#text{
+#centerText{
 position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
 font-size:50px;
-opacity:0;
 color:red;
-transition:2s;
+opacity:0;
+transition:1s;
 }
 
-.show{
-opacity:1;
+#message{
+position:absolute;
+top:20px;
+left:20px;
+width:400px;
+font-size:20px;
+white-space:pre-line;
 }
 
 </style>
@@ -41,7 +45,9 @@ opacity:1;
 <body>
 
 <canvas id="canvas"></canvas>
-<div id="text">З 8 березням 🌸</div>
+
+<div id="centerText">З 8 березням 🌸</div>
+<div id="message"></div>
 
 <script>
 
@@ -51,27 +57,22 @@ const ctx = canvas.getContext("2d")
 canvas.width = window.innerWidth
 canvas.height = window.innerHeight
 
-let hearts = []
-let centerX = canvas.width/2
-let centerY = canvas.height/2
+let hearts=[]
+let centerX=canvas.width/2
+let centerY=canvas.height/2
 
-for(let i=0;i<120;i++){
-
+for(let i=0;i<300;i++){
 hearts.push({
 x:Math.random()*canvas.width,
-y:Math.random()*canvas.height,
-size:20
+y:Math.random()*canvas.height
 })
-
 }
 
-let progress = 0
+let progress=0
 
-function drawHeart(x,y,size,emoji){
-
-ctx.font=size+"px serif"
-ctx.fillText(emoji,x,y)
-
+function drawHeart(x,y){
+ctx.font="20px serif"
+ctx.fillText("❤️",x,y)
 }
 
 function animate(){
@@ -82,43 +83,53 @@ progress+=0.01
 
 for(let i=0;i<hearts.length;i++){
 
-let angle = i*0.2
-let targetX = centerX + 200*Math.sin(angle)*Math.sin(angle)*Math.sin(angle)
-let targetY = centerY - (130*Math.cos(angle)-50*Math.cos(2*angle)-20*Math.cos(3*angle)-10*Math.cos(4*angle))
+let angle=i*0.2
 
-hearts[i].x += (targetX-hearts[i].x)*progress
-hearts[i].y += (targetY-hearts[i].y)*progress
+let targetX=centerX + 16*Math.pow(Math.sin(angle),3)*15
+let targetY=centerY - (13*Math.cos(angle)-5*Math.cos(2*angle)-2*Math.cos(3*angle)-Math.cos(4*angle))*15
 
-drawHeart(hearts[i].x,hearts[i].y,20,"❤️")
+hearts[i].x+=(targetX-hearts[i].x)*progress
+hearts[i].y+=(targetY-hearts[i].y)*progress
+
+drawHeart(hearts[i].x,hearts[i].y)
 
 }
 
 if(progress<1){
-
 requestAnimationFrame(animate)
-
 }else{
 
-setInterval(()=>{
+document.getElementById("centerText").style.opacity=1
 
-ctx.clearRect(0,0,canvas.width,canvas.height)
-
-let emojis=["❤️","💖","💗","💓","💞"]
-
-for(let i=0;i<hearts.length;i++){
-
-let angle = i*0.2
-
-let x = centerX + 200*Math.sin(angle)*Math.sin(angle)*Math.sin(angle)
-let y = centerY - (130*Math.cos(angle)-50*Math.cos(2*angle)-20*Math.cos(3*angle)-10*Math.cos(4*angle))
-
-drawHeart(x,y,22,emojis[Math.floor(Math.random()*emojis.length)])
+setTimeout(moveHeart,3000)
 
 }
 
-},300)
+}
 
-document.getElementById("text").classList.add("show")
+function moveHeart(){
+
+centerX=120
+centerY=120
+
+setTimeout(typeText,1000)
+
+}
+
+let text=`Сьогодні восьме березня
+Це чудовий день і в цей день я бажаю тобі щоб у тобі все було чудово щоб свіже гарне сонце світило тобі в небо висвітлювало шлях твоєї життєвої дороги і нехай це сонечко висвітлює тобі твій шлях не тільки восьмого березня а й дев'ятого і десятого і так далі, нехай усе твоє життя шлях буде світлим, вітаю з восьмим березнем сонечко`
+
+let i=0
+
+function typeText(){
+
+if(i<text.length){
+
+document.getElementById("message").textContent+=text[i]
+
+i++
+
+setTimeout(typeText,40)
 
 }
 
