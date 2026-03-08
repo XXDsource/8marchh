@@ -26,24 +26,27 @@
             text-align: center;
             pointer-events: none;
             width: 90%;
+            z-index: 10;
         }
 
         #message {
             position: absolute;
-            top: 220px; /* Місце під серцем */
-            left: 5%;
-            right: 5%;
+            top: 260px; /* Опущено нижче, щоб не з'єднувалось із серцем */
+            left: 7%;
+            right: 7%;
             font-size: 22px; 
             line-height: 1.5;
             color: white;
             white-space: pre-line;
+            z-index: 5;
         }
 
         @media (min-width: 768px) {
             #message {
                 font-size: 26px;
-                width: 700px;
+                width: 750px;
                 left: 60px;
+                top: 280px;
             }
         }
     </style>
@@ -62,24 +65,28 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 let hearts = [];
-const heartCount = 350; 
+let heartCount = 350; 
 let centerX = canvas.width / 2;
 let centerY = canvas.height / 2;
 let heartSize = 15; 
-let isFinished = false; 
+let isTypingStarted = false;
 
 const heartEmojis = ["❤️", "💖", "💝", "💕", "💗", "💓"];
-let stage = 0; // 0: хаос, 1: центр, 2: кут
+let stage = 0; 
 
-for (let i = 0; i < heartCount; i++) {
-    hearts.push({
+function createHeartPart() {
+    return {
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
         vx: (Math.random() - 0.5) * 5,
         vy: (Math.random() - 0.5) * 5,
-        targetAngle: (i / heartCount) * Math.PI * 2,
-        emoji: "❤️"
-    });
+        targetAngle: Math.random() * Math.PI * 2,
+        emoji: heartEmojis[Math.floor(Math.random() * heartEmojis.length)]
+    };
+}
+
+for (let i = 0; i < heartCount; i++) {
+    hearts.push(createHeartPart());
 }
 
 function getHeartPoint(angle, size) {
@@ -105,13 +112,9 @@ function animate() {
             h.x += (tx - h.x) * 0.08;
             h.y += (ty - h.y) * 0.08;
 
-            // Переливання працює весь час, поки текст не закінчився
-            if (!isFinished) {
-                if (Math.random() > 0.92) {
-                    h.emoji = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
-                }
-            } else {
-                h.emoji = "❤️"; // Зупиняємося на червоному в кінці
+            // Постійне переливання без зупинки
+            if (Math.random() > 0.94) {
+                h.emoji = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
             }
         }
         
@@ -124,47 +127,54 @@ function animate() {
 
 animate();
 
-// --- КЕРУВАННЯ ПОДІЯМИ ---
+// --- ЛОГІКА ПОДІЙ ---
 
-// 1. Початок збору серця
+// 1. Початок збору
 setTimeout(() => {
     stage = 1;
     document.getElementById("centerText").style.opacity = 1;
 }, 1000);
 
-// 2. Вимикаємо напис у центрі
+// 2. Напис зникає
 setTimeout(() => {
     document.getElementById("centerText").style.opacity = 0;
 }, 2800);
 
-// 3. Зменшуємо та переміщуємо серце
+// 3. Серце летить у кут та стає трохи нижче
 setTimeout(() => {
     stage = 2;
-    centerX = 110; 
-    centerY = 110; 
+    centerX = 120; 
+    centerY = 130; // Опущено нижче від верхнього краю
     heartSize = 9; 
 }, 3300);
 
-// 4. Друк привітання
-setTimeout(typeText, 4300);
+// 4. Друк тексту та заповнення серця
+setTimeout(() => {
+    isTypingStarted = true;
+    // Додаємо більше сердечок для ефекту "заповнення" при друці
+    for(let i=0; i<150; i++) {
+        let newH = createHeartPart();
+        newH.x = centerX;
+        newH.y = centerY;
+        hearts.push(newH);
+    }
+    typeText();
+}, 4500);
 
-const textContent = `Сьогодні восьме березня! 
-Це чудовий весняний день, і я бажаю тобі, щоб у твоєму житті все було прекрасно. 
+const textContent = `Сьогодні восьме березня!
+Це чудовий весняний день, і я бажаю тобі, щоб у твоєму житті все було прекрасно.
 
-Нехай лагідне сонце освітлює твій шлях не тільки сьогодні, а й кожного наступного дня. Будь щаслива, усміхнена і нехай весь твій шлях життя буде світлим, гарним і чудовим як і ти, сонце, Вітаю!✨`;
+Нехай лагідне сонце освітлює твій шлях не тільки сьогодні, а й кожного наступного дня. Будь щаслива, усміхнена і нехай весь твій шлях життя буде світлим, гарним і чудовим як і ти, сонце, Вітаю! ✨`;
 
 let pos = 0;
 function typeText() {
     if (pos < textContent.length) {
         document.getElementById("message").textContent += textContent[pos];
         pos++;
-        setTimeout(typeText, 40);
-    } else {
-        isFinished = true; // Тепер серце стане повністю червоним
+        setTimeout(typeText, 45);
     }
 }
 
-// Підтримка розміру вікна
 window.onresize = () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
