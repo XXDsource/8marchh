@@ -2,6 +2,7 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>З 8 Березня!</title>
     <style>
         body {
@@ -13,30 +14,37 @@
         }
         canvas { position: absolute; top: 0; left: 0; }
         
-        /* Заголовок у центрі (білий, зникає миттєво) */
         #centerText {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 50px;
+            font-size: 8vw;
             color: white; 
             opacity: 0;
-            transition: opacity 0.1s; /* Миттєве зникнення */
+            transition: opacity 0.1s;
             text-align: center;
             pointer-events: none;
+            width: 90%;
         }
 
-        /* Блок для привітання (білий текст, під серцем у кутку) */
         #message {
             position: absolute;
-            top: 160px; /* Позиція під зменшеним серцем */
-            left: 30px;
-            width: 450px;
-            font-size: 18px;
-            line-height: 1.6;
+            top: 220px; /* Відступ під серцем */
+            left: 5%;
+            right: 5%;
+            font-size: 22px; /* Збільшений шрифт */
+            line-height: 1.5;
             color: white;
             white-space: pre-line;
+        }
+
+        @media (min-width: 768px) {
+            #message {
+                font-size: 26px; /* Ще більший шрифт для ПК */
+                width: 700px;
+                left: 60px;
+            }
         }
     </style>
 </head>
@@ -54,16 +62,15 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 let hearts = [];
-const heartCount = 300; 
+const heartCount = 350; 
 let centerX = canvas.width / 2;
 let centerY = canvas.height / 2;
-let heartSize = 15; // Початковий великий розмір
-let isFinished = false; // Чи додрукувався текст
+let heartSize = 15; 
+let isFinished = false; 
 
 const heartEmojis = ["❤️", "💖", "💝", "💕", "💗", "💓"];
-let stage = 0; // 0 - хаос, 1 - центр, 2 - кут
+let stage = 0; 
 
-// Створення частинок
 for (let i = 0; i < heartCount; i++) {
     hearts.push({
         x: Math.random() * canvas.width,
@@ -88,76 +95,4 @@ function animate() {
         if (stage === 0) {
             h.x += h.vx;
             h.y += h.vy;
-            if (h.x < 0 || h.x > canvas.width) h.vx *= -1;
-            if (h.y < 0 || h.y > canvas.height) h.vy *= -1;
-        } else {
-            const target = getHeartPoint(h.targetAngle, heartSize);
-            const tx = centerX + target.x;
-            const ty = centerY + target.y;
-            
-            // Плавний рух до цілі
-            h.x += (tx - h.x) * 0.08;
-            h.y += (ty - h.y) * 0.08;
-
-            // Ефект переливання (поки текст не закінчився)
-            if (stage >= 1 && !isFinished) {
-                if (Math.random() > 0.9) {
-                    h.emoji = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
-                }
-            } else if (isFinished) {
-                h.emoji = "❤️"; // Зупиняємо на червоному
-            }
-        }
-        
-        ctx.font = `${heartSize + 4}px serif`;
-        ctx.fillText(h.emoji, h.x, h.y);
-    });
-
-    requestAnimationFrame(animate);
-}
-
-animate();
-
-// --- КЕРУВАННЯ ПОСЛІДОВНІСТЮ ---
-
-// 1. Збираємо велике серце в центрі і показуємо текст
-setTimeout(() => {
-    stage = 1;
-    document.getElementById("centerText").style.opacity = 1;
-}, 1000);
-
-// 2. Текст швидко зникає
-setTimeout(() => {
-    document.getElementById("centerText").style.opacity = 0;
-}, 3000);
-
-// 3. Серце зменшується і летить у верхній лівий кут
-setTimeout(() => {
-    stage = 2;
-    centerX = 100;
-    centerY = 80;
-    heartSize = 8; // Зменшення розміру
-}, 3500);
-
-// 4. Починаємо друкувати основне привітання під серцем
-setTimeout(typeText, 4500);
-
-const textContent = `Сьогодні восьме березня! 
-Це чудовий весняний день, і я бажаю тобі, щоб у твоєму житті все було прекрасно. 
-
-Нехай лагідне сонце освітлює твій шлях не тільки сьогодні, а й кожного наступного дня. Будь щаслива, усміхнена і нехай кожен твій день буде схожий на свято! Вітаю! 🌸✨`;
-
-let pos = 0;
-function typeText() {
-    if (pos < textContent.length) {
-        document.getElementById("message").textContent += textContent[pos];
-        pos++;
-        setTimeout(typeText, 35);
-    } else {
-        isFinished = true; // Текст завершено — серце червоніє
-    }
-}
-</script>
-
-</body>
-</html>
+            if (h.x < 0 || h.x > canvas.width) h.vx *=
