@@ -5,10 +5,10 @@
     <title>З 8 Березня!</title>
     <style>
         body {
-            background: #000;
+            background: black;
             margin: 0;
             overflow: hidden;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             color: white;
         }
         canvas { position: absolute; top: 0; left: 0; }
@@ -17,23 +17,23 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 40px;
-            color: #ff4d4d;
+            font-size: 50px;
+            color: #ff3366;
             opacity: 0;
-            transition: opacity 2s ease-in-out;
+            transition: opacity 1.5s;
             text-align: center;
-            text-shadow: 0 0 10px rgba(255, 77, 77, 0.5);
             pointer-events: none;
+            text-shadow: 0 0 15px rgba(255, 51, 102, 0.6);
         }
         #message {
             position: absolute;
-            top: 150px;
-            left: 30px;
-            width: 350px;
-            font-size: 18px;
-            line-height: 1.6;
+            top: 160px;
+            left: 40px;
+            width: 400px;
+            font-size: 19px;
+            line-height: 1.5;
+            color: #ffccd5;
             white-space: pre-line;
-            color: #ffcccc;
         }
     </style>
 </head>
@@ -51,88 +51,102 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 let hearts = [];
+const heartCount = 280; // Кількість маленьких сердечок
 let centerX = canvas.width / 2;
 let centerY = canvas.height / 2;
-let targetCenterX = centerX;
-let targetCenterY = centerY;
-let progress = 0; // 0: хаос, 1: формування серця, 2: текст
-let state = "scatter"; // scatter, form, move, text
 
-// Створення частинок
-for (let i = 0; i < 250; i++) {
+// Стан анімації: 0 - хаос, 1 - збір у серце, 2 - рух у кут
+let stage = 0; 
+
+// Ініціалізація частинок
+for (let i = 0; i < heartCount; i++) {
     hearts.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 4,
-        vy: (Math.random() - 0.5) * 4,
-        angle: (i / 250) * Math.PI * 2 // для форми серця
+        vx: (Math.random() - 0.5) * 3,
+        vy: (Math.random() - 0.5) * 3,
+        // Кожна частинка отримує свій кут для формування серця
+        targetAngle: (i / heartCount) * Math.PI * 2 
     });
 }
 
-function drawHeartIcon(x, y) {
-    ctx.font = "16px serif";
-    ctx.fillText("❤️", x, y);
+function getHeartPoint(angle, size) {
+    // Математична формула серця
+    const x = 16 * Math.pow(Math.sin(angle), 3);
+    const y = -(13 * Math.cos(angle) - 5 * Math.cos(2 * angle) - 2 * Math.cos(3 * angle) - Math.cos(4 * angle));
+    return { x: x * size, y: y * size };
 }
 
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    hearts.forEach((h, index) => {
-        if (state === "scatter") {
+    
+    hearts.forEach(h => {
+        if (stage === 0) {
+            // Хаотичний рух на початку
             h.x += h.vx;
             h.y += h.vy;
-            // Відштовхування від стінок
             if (h.x < 0 || h.x > canvas.width) h.vx *= -1;
             if (h.y < 0 || h.y > canvas.height) h.vy *= -1;
-        } 
-        else if (state === "form" || state === "move") {
-            // Математична формула серця
-            let a = h.angle;
-            let tx = targetCenterX + 16 * Math.pow(Math.sin(a), 3) * 13;
-            let ty = targetCenterY - (13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a)) * 13;
+        } else {
+            // Плавне тяжіння до форми серця (Interpolation)
+            const target = getHeartPoint(h.targetAngle, 14);
+            const tx = centerX + target.x;
+            const ty = centerY + target.y;
             
-            h.x += (tx - h.x) * 0.05;
-            h.y += (ty - h.y) * 0.05;
+            h.x += (tx - h.x) * 0.06;
+            h.y += (ty - h.y) * 0.06;
         }
-        drawHeartIcon(h.x, h.y);
+        
+        ctx.font = "18px serif";
+        ctx.fillText("❤️", h.x, h.y);
     });
-
-    if (state === "scatter" && Date.now() - startTime > 2000) {
-        state = "form";
-        document.getElementById("centerText").style.opacity = 1;
-        setTimeout(() => { state = "move"; targetCenterX = 100; targetCenterY = 100; }, 3000);
-        setTimeout(() => { startTyping(); }, 4500);
-    }
 
     requestAnimationFrame(animate);
 }
 
-const startTime = Date.now();
+// Запуск послідовності
 animate();
 
-/* ---------- ЕФЕКТ ТЕКСТУ ---------- */
-const fullText = `Сьогодні восьме березня! 
-Це чудовий день, і я бажаю тобі, щоб у всьому панувала гармонія. Нехай яскраве сонце освітлює твій шлях не тільки сьогодні, а й кожного наступного дня. 
+// 1. Починаємо збирати серце через 1.5 секунди
+setTimeout(() => {
+    stage = 1;
+    document.getElementById("centerText").style.opacity = 1;
+}, 1500);
 
-Нехай все твоє життя буде сповнене тепла та усмішок. Вітаю! ✨`;
+// 2. Переміщуємо серце в кут через 4.5 секунди
+setTimeout(() => {
+    centerX = 120;
+    centerY = 100;
+    document.getElementById("centerText").style.opacity = 0;
+}, 4500);
+
+// 3. Починаємо друкувати текст, коли серце відпливло
+setTimeout(typeText, 6000);
+
+const text = `Сьогодні восьме березня! 
+Це чудовий весняний день, і я бажаю тобі, щоб у твоєму житті все було прекрасно. 
+
+Нехай лагідне сонце освітлює твій шлях не тільки сьогодні, а й кожного наступного дня. Будь щаслива, усміхнена і нехай кожен твій день буде схожий на свято! Вітаю! 🌸✨`;
 
 let pos = 0;
-function startTyping() {
-    if (pos < fullText.length) {
-        document.getElementById("message").textContent += fullText[pos];
+function typeText() {
+    if (pos < text.length) {
+        document.getElementById("message").textContent += text[pos];
         pos++;
-        setTimeout(startTyping, 40);
+        // Швидкість друку: 40мс на символ
+        setTimeout(typeText, 40);
     }
 }
 
-window.addEventListener('resize', () => {
+// Оновлення координат при зміні розміру вікна
+window.onresize = () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    if (state !== "move") {
-        targetCenterX = canvas.width / 2;
-        targetCenterY = canvas.height / 2;
+    if (stage === 1) {
+        centerX = canvas.width / 2;
+        centerY = canvas.height / 2;
     }
-});
+};
 </script>
 
 </body>
