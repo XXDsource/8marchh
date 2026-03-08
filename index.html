@@ -12,27 +12,30 @@
             color: white;
         }
         canvas { position: absolute; top: 0; left: 0; }
+        
+        /* Заголовок, який швидко зникає */
         #centerText {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: 50px;
-            color: #ff3366;
+            color: white; /* Змінено на білий */
             opacity: 0;
-            transition: opacity 1.5s;
+            transition: opacity 0.3s; /* Швидке зникнення */
             text-align: center;
             pointer-events: none;
-            text-shadow: 0 0 15px rgba(255, 51, 102, 0.6);
         }
+
+        /* Блок для привітання під серцем */
         #message {
             position: absolute;
-            top: 160px;
-            left: 40px;
-            width: 400px;
-            font-size: 19px;
-            line-height: 1.5;
-            color: #ffccd5;
+            top: 180px; /* Нижче зменшеного серця */
+            left: 30px;
+            width: 450px;
+            font-size: 18px;
+            line-height: 1.6;
+            color: white; /* Білий текст */
             white-space: pre-line;
         }
     </style>
@@ -51,27 +54,27 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 let hearts = [];
-const heartCount = 280; // Кількість маленьких сердечок
+const heartCount = 300; 
 let centerX = canvas.width / 2;
 let centerY = canvas.height / 2;
+let heartSize = 15; // Початковий розмір
+let isFinished = false; // Чи закінчився текст
 
-// Стан анімації: 0 - хаос, 1 - збір у серце, 2 - рух у кут
+const heartEmojis = ["❤️", "💖", "💝", "💕", "💗", "💓"];
 let stage = 0; 
 
-// Ініціалізація частинок
 for (let i = 0; i < heartCount; i++) {
     hearts.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * 3,
-        vy: (Math.random() - 0.5) * 3,
-        // Кожна частинка отримує свій кут для формування серця
-        targetAngle: (i / heartCount) * Math.PI * 2 
+        vx: (Math.random() - 0.5) * 4,
+        vy: (Math.random() - 0.5) * 4,
+        targetAngle: (i / heartCount) * Math.PI * 2,
+        emoji: "❤️" // Початковий колір
     });
 }
 
 function getHeartPoint(angle, size) {
-    // Математична формула серця
     const x = 16 * Math.pow(Math.sin(angle), 3);
     const y = -(13 * Math.cos(angle) - 5 * Math.cos(2 * angle) - 2 * Math.cos(3 * angle) - Math.cos(4 * angle));
     return { x: x * size, y: y * size };
@@ -80,73 +83,75 @@ function getHeartPoint(angle, size) {
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    hearts.forEach(h => {
+    hearts.forEach((h, index) => {
         if (stage === 0) {
-            // Хаотичний рух на початку
             h.x += h.vx;
             h.y += h.vy;
             if (h.x < 0 || h.x > canvas.width) h.vx *= -1;
             if (h.y < 0 || h.y > canvas.height) h.vy *= -1;
         } else {
-            // Плавне тяжіння до форми серця (Interpolation)
-            const target = getHeartPoint(h.targetAngle, 14);
+            const target = getHeartPoint(h.targetAngle, heartSize);
             const tx = centerX + target.x;
             const ty = centerY + target.y;
             
-            h.x += (tx - h.x) * 0.06;
-            h.y += (ty - h.y) * 0.06;
+            h.x += (tx - h.x) * 0.07;
+            h.y += (ty - h.y) * 0.07;
+
+            // Ефект переливання (зміна емодзі), поки текст не закінчився
+            if (!isFinished && Math.random() > 0.95) {
+                h.emoji = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+            } else if (isFinished) {
+                h.emoji = "❤️"; // Зупиняємо на червоному
+            }
         }
         
-        ctx.font = "18px serif";
-        ctx.fillText("❤️", h.x, h.y);
+        ctx.font = `${heartSize + 2}px serif`;
+        ctx.fillText(h.emoji, h.x, h.y);
     });
 
     requestAnimationFrame(animate);
 }
 
-// Запуск послідовності
 animate();
 
-// 1. Починаємо збирати серце через 1.5 секунди
+// --- ТАЙМІНГИ ТА ЛОГІКА ---
+
+// 1. Показуємо текст у центрі
 setTimeout(() => {
-    stage = 1;
     document.getElementById("centerText").style.opacity = 1;
-}, 1500);
+    stage = 1;
+}, 500);
 
-// 2. Переміщуємо серце в кут через 4.5 секунди
+// 2. Текст швидко зникає ДО переміщення
 setTimeout(() => {
-    centerX = 120;
-    centerY = 100;
     document.getElementById("centerText").style.opacity = 0;
-}, 4500);
+}, 2500);
 
-// 3. Починаємо друкувати текст, коли серце відпливло
-setTimeout(typeText, 6000);
+// 3. Серце зменшується і летить у кут
+setTimeout(() => {
+    centerX = 100;
+    centerY = 80;
+    heartSize = 8; // Зменшуємо розмір серця
+}, 3000);
 
-const text = `Сьогодні восьме березня! 
+// 4. Починаємо друкувати привітання
+setTimeout(typeText, 4000);
+
+const textContent = `Сьогодні восьме березня! 
 Це чудовий весняний день, і я бажаю тобі, щоб у твоєму житті все було прекрасно. 
 
 Нехай лагідне сонце освітлює твій шлях не тільки сьогодні, а й кожного наступного дня. Будь щаслива, усміхнена і нехай кожен твій день буде схожий на свято! Вітаю! 🌸✨`;
 
 let pos = 0;
 function typeText() {
-    if (pos < text.length) {
-        document.getElementById("message").textContent += text[pos];
+    if (pos < textContent.length) {
+        document.getElementById("message").textContent += textContent[pos];
         pos++;
-        // Швидкість друку: 40мс на символ
         setTimeout(typeText, 40);
+    } else {
+        isFinished = true; // Текст закінчився -> серце стає червоним
     }
 }
-
-// Оновлення координат при зміні розміру вікна
-window.onresize = () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    if (stage === 1) {
-        centerX = canvas.width / 2;
-        centerY = canvas.height / 2;
-    }
-};
 </script>
 
 </body>
