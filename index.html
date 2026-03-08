@@ -23,7 +23,7 @@ position:absolute;
 top:50%;
 left:50%;
 transform:translate(-50%,-50%);
-font-size:50px;
+font-size:55px;
 color:red;
 opacity:0;
 transition:1s;
@@ -33,7 +33,7 @@ transition:1s;
 position:absolute;
 top:20px;
 left:20px;
-width:400px;
+width:420px;
 font-size:20px;
 white-space:pre-line;
 }
@@ -51,53 +51,136 @@ white-space:pre-line;
 
 <script>
 
-const canvas = document.getElementById("canvas")
-const ctx = canvas.getContext("2d")
+/* ---------- LIMIT OPENINGS ---------- */
 
-canvas.width = window.innerWidth
-canvas.height = window.innerHeight
+let visits = localStorage.getItem("march8")
+
+if(!visits){
+visits=0
+}
+
+visits++
+
+localStorage.setItem("march8",visits)
+
+if(visits>3){
+
+document.body.innerHTML=`
+<div style="
+background:white;
+color:black;
+height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:40px;
+font-family:monospace;
+">
+404 Not Found
+</div>
+`
+
+throw "limit"
+
+}
+
+/* ---------- CANVAS ---------- */
+
+const canvas=document.getElementById("canvas")
+const ctx=canvas.getContext("2d")
+
+canvas.width=window.innerWidth
+canvas.height=window.innerHeight
 
 let hearts=[]
+
 let centerX=canvas.width/2
 let centerY=canvas.height/2
 
-for(let i=0;i<300;i++){
+for(let i=0;i<250;i++){
+
 hearts.push({
+
 x:Math.random()*canvas.width,
-y:Math.random()*canvas.height
+y:Math.random()*canvas.height,
+vx:(Math.random()-0.5)*2,
+vy:(Math.random()-0.5)*2
+
 })
+
 }
 
-let progress=0
+/* ---------- DRAW ---------- */
 
 function drawHeart(x,y){
+
 ctx.font="20px serif"
 ctx.fillText("❤️",x,y)
+
 }
+
+/* ---------- ANIMATION ---------- */
+
+let progress=0
 
 function animate(){
 
 ctx.clearRect(0,0,canvas.width,canvas.height)
 
-progress+=0.01
+for(let h of hearts){
 
-for(let i=0;i<hearts.length;i++){
+if(progress<1){
 
-let angle=i*0.2
-
-let targetX=centerX + 16*Math.pow(Math.sin(angle),3)*15
-let targetY=centerY - (13*Math.cos(angle)-5*Math.cos(2*angle)-2*Math.cos(3*angle)-Math.cos(4*angle))*15
-
-hearts[i].x+=(targetX-hearts[i].x)*progress
-hearts[i].y+=(targetY-hearts[i].y)*progress
-
-drawHeart(hearts[i].x,hearts[i].y)
+h.x+=h.vx
+h.y+=h.vy
 
 }
 
+drawHeart(h.x,h.y)
+
+}
+
+progress+=0.01
+
 if(progress<1){
+
 requestAnimationFrame(animate)
+
 }else{
+
+formHeart()
+
+}
+
+}
+
+function formHeart(){
+
+let i=0
+
+let interval=setInterval(()=>{
+
+ctx.clearRect(0,0,canvas.width,canvas.height)
+
+for(let h of hearts){
+
+let angle=i*0.2
+
+let targetX=centerX+16*Math.pow(Math.sin(angle),3)*15
+let targetY=centerY-(13*Math.cos(angle)-5*Math.cos(2*angle)-2*Math.cos(3*angle)-Math.cos(4*angle))*15
+
+h.x+=(targetX-h.x)*0.05
+h.y+=(targetY-h.y)*0.05
+
+drawHeart(h.x,h.y)
+
+i++
+
+}
+
+if(i>hearts.length){
+
+clearInterval(interval)
 
 document.getElementById("centerText").style.opacity=1
 
@@ -105,31 +188,37 @@ setTimeout(moveHeart,3000)
 
 }
 
+},30)
+
 }
+
+/* ---------- MOVE ---------- */
 
 function moveHeart(){
 
 centerX=120
 centerY=120
 
-setTimeout(typeText,1000)
+setTimeout(typeText,800)
 
 }
 
-let text=`Сьогодні восьме березня
-Це чудовий день і в цей день я бажаю тобі щоб у тобі все було чудово щоб свіже гарне сонце світило тобі в небо висвітлювало шлях твоєї життєвої дороги і нехай це сонечко висвітлює тобі твій шлях не тільки восьмого березня а й дев'ятого і десятого і так далі, нехай усе твоє життя шлях буде світлим, вітаю з восьмим березнем сонечко`
+/* ---------- TEXT ---------- */
 
-let i=0
+let text=`Сьогодні восьме березня
+Це чудовий день і в цей день я бажаю тобі щоб у тобі все було чудово щоб свіже гарне сонце світило тобі в небо висвітлювало шлях твоєї життєвої дороги і нехай це сонечко висвітлює тобі твій шлях не тільки восьмого березня а й дев'ятого і десятого і так далі, нехай усе твоє життя шлях буде світлим вітаю з восьмим березнем сонечко`
+
+let pos=0
 
 function typeText(){
 
-if(i<text.length){
+if(pos<text.length){
 
-document.getElementById("message").textContent+=text[i]
+document.getElementById("message").textContent+=text[pos]
 
-i++
+pos++
 
-setTimeout(typeText,40)
+setTimeout(typeText,35)
 
 }
 
