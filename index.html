@@ -1,231 +1,138 @@
 <!DOCTYPE html>
-<html>
+<html lang="uk">
 <head>
-<meta charset="UTF-8">
-<title>8 Березня</title>
-
-<style>
-
-body{
-background:black;
-margin:0;
-overflow:hidden;
-font-family:sans-serif;
-color:white;
-}
-
-canvas{
-position:absolute;
-}
-
-#centerText{
-position:absolute;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-font-size:55px;
-color:red;
-opacity:0;
-transition:1s;
-}
-
-#message{
-position:absolute;
-top:20px;
-left:20px;
-width:420px;
-font-size:20px;
-white-space:pre-line;
-}
-
-</style>
-
+    <meta charset="UTF-8">
+    <title>З 8 Березня!</title>
+    <style>
+        body {
+            background: #000;
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+        }
+        canvas { position: absolute; top: 0; left: 0; }
+        #centerText {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 40px;
+            color: #ff4d4d;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255, 77, 77, 0.5);
+            pointer-events: none;
+        }
+        #message {
+            position: absolute;
+            top: 150px;
+            left: 30px;
+            width: 350px;
+            font-size: 18px;
+            line-height: 1.6;
+            white-space: pre-line;
+            color: #ffcccc;
+        }
+    </style>
 </head>
-
 <body>
 
 <canvas id="canvas"></canvas>
-
-<div id="centerText">З 8 березням 🌸</div>
+<div id="centerText">З 8 Березня! 🌸</div>
 <div id="message"></div>
 
 <script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
-/* ---------- LIMIT OPENINGS ---------- */
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-let visits = localStorage.getItem("march8")
+let hearts = [];
+let centerX = canvas.width / 2;
+let centerY = canvas.height / 2;
+let targetCenterX = centerX;
+let targetCenterY = centerY;
+let progress = 0; // 0: хаос, 1: формування серця, 2: текст
+let state = "scatter"; // scatter, form, move, text
 
-if(!visits){
-visits=0
+// Створення частинок
+for (let i = 0; i < 250; i++) {
+    hearts.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 4,
+        vy: (Math.random() - 0.5) * 4,
+        angle: (i / 250) * Math.PI * 2 // для форми серця
+    });
 }
 
-visits++
-
-localStorage.setItem("march8",visits)
-
-if(visits>3){
-
-document.body.innerHTML=`
-<div style="
-background:white;
-color:black;
-height:100vh;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:40px;
-font-family:monospace;
-">
-404 Not Found
-</div>
-`
-
-throw "limit"
-
+function drawHeartIcon(x, y) {
+    ctx.font = "16px serif";
+    ctx.fillText("❤️", x, y);
 }
 
-/* ---------- CANVAS ---------- */
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-const canvas=document.getElementById("canvas")
-const ctx=canvas.getContext("2d")
+    hearts.forEach((h, index) => {
+        if (state === "scatter") {
+            h.x += h.vx;
+            h.y += h.vy;
+            // Відштовхування від стінок
+            if (h.x < 0 || h.x > canvas.width) h.vx *= -1;
+            if (h.y < 0 || h.y > canvas.height) h.vy *= -1;
+        } 
+        else if (state === "form" || state === "move") {
+            // Математична формула серця
+            let a = h.angle;
+            let tx = targetCenterX + 16 * Math.pow(Math.sin(a), 3) * 13;
+            let ty = targetCenterY - (13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a)) * 13;
+            
+            h.x += (tx - h.x) * 0.05;
+            h.y += (ty - h.y) * 0.05;
+        }
+        drawHeartIcon(h.x, h.y);
+    });
 
-canvas.width=window.innerWidth
-canvas.height=window.innerHeight
+    if (state === "scatter" && Date.now() - startTime > 2000) {
+        state = "form";
+        document.getElementById("centerText").style.opacity = 1;
+        setTimeout(() => { state = "move"; targetCenterX = 100; targetCenterY = 100; }, 3000);
+        setTimeout(() => { startTyping(); }, 4500);
+    }
 
-let hearts=[]
-
-let centerX=canvas.width/2
-let centerY=canvas.height/2
-
-for(let i=0;i<250;i++){
-
-hearts.push({
-
-x:Math.random()*canvas.width,
-y:Math.random()*canvas.height,
-vx:(Math.random()-0.5)*2,
-vy:(Math.random()-0.5)*2
-
-})
-
+    requestAnimationFrame(animate);
 }
 
-/* ---------- DRAW ---------- */
+const startTime = Date.now();
+animate();
 
-function drawHeart(x,y){
+/* ---------- ЕФЕКТ ТЕКСТУ ---------- */
+const fullText = `Сьогодні восьме березня! 
+Це чудовий день, і я бажаю тобі, щоб у всьому панувала гармонія. Нехай яскраве сонце освітлює твій шлях не тільки сьогодні, а й кожного наступного дня. 
 
-ctx.font="20px serif"
-ctx.fillText("❤️",x,y)
+Нехай все твоє життя буде сповнене тепла та усмішок. Вітаю! ✨`;
 
+let pos = 0;
+function startTyping() {
+    if (pos < fullText.length) {
+        document.getElementById("message").textContent += fullText[pos];
+        pos++;
+        setTimeout(startTyping, 40);
+    }
 }
 
-/* ---------- ANIMATION ---------- */
-
-let progress=0
-
-function animate(){
-
-ctx.clearRect(0,0,canvas.width,canvas.height)
-
-for(let h of hearts){
-
-if(progress<1){
-
-h.x+=h.vx
-h.y+=h.vy
-
-}
-
-drawHeart(h.x,h.y)
-
-}
-
-progress+=0.01
-
-if(progress<1){
-
-requestAnimationFrame(animate)
-
-}else{
-
-formHeart()
-
-}
-
-}
-
-function formHeart(){
-
-let i=0
-
-let interval=setInterval(()=>{
-
-ctx.clearRect(0,0,canvas.width,canvas.height)
-
-for(let h of hearts){
-
-let angle=i*0.2
-
-let targetX=centerX+16*Math.pow(Math.sin(angle),3)*15
-let targetY=centerY-(13*Math.cos(angle)-5*Math.cos(2*angle)-2*Math.cos(3*angle)-Math.cos(4*angle))*15
-
-h.x+=(targetX-h.x)*0.05
-h.y+=(targetY-h.y)*0.05
-
-drawHeart(h.x,h.y)
-
-i++
-
-}
-
-if(i>hearts.length){
-
-clearInterval(interval)
-
-document.getElementById("centerText").style.opacity=1
-
-setTimeout(moveHeart,3000)
-
-}
-
-},30)
-
-}
-
-/* ---------- MOVE ---------- */
-
-function moveHeart(){
-
-centerX=120
-centerY=120
-
-setTimeout(typeText,800)
-
-}
-
-/* ---------- TEXT ---------- */
-
-let text=`Сьогодні восьме березня
-Це чудовий день і в цей день я бажаю тобі щоб у тобі все було чудово щоб свіже гарне сонце світило тобі в небо висвітлювало шлях твоєї життєвої дороги і нехай це сонечко висвітлює тобі твій шлях не тільки восьмого березня а й дев'ятого і десятого і так далі, нехай усе твоє життя шлях буде світлим вітаю з восьмим березнем сонечко`
-
-let pos=0
-
-function typeText(){
-
-if(pos<text.length){
-
-document.getElementById("message").textContent+=text[pos]
-
-pos++
-
-setTimeout(typeText,35)
-
-}
-
-}
-
-animate()
-
+window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    if (state !== "move") {
+        targetCenterX = canvas.width / 2;
+        targetCenterY = canvas.height / 2;
+    }
+});
 </script>
 
 </body>
